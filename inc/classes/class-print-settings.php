@@ -16,6 +16,7 @@ if (!class_exists('PRINT_Settings')) {
         var $screenid = array();
 
         var $token;
+
         
 
         /**
@@ -32,6 +33,20 @@ if (!class_exists('PRINT_Settings')) {
             add_action('admin_enqueue_scripts', array($this, 'adminEnqueueScripts'), 10, 1);
             add_action('admin_enqueue_scripts', array($this, 'adminEnqueueStyles'), 10, 1);
 
+        }
+
+
+        public static function _get_option($option_name = false)
+        {
+            $options = get_option('print_options');
+
+            if ($option_name && isset($options[$option_name]))
+                return $options[$option_name];
+
+            if ($option_name)
+                return $options;
+
+            return false;
         }
 
 
@@ -104,6 +119,13 @@ if (!class_exists('PRINT_Settings')) {
                     'type' => 'password',
                     'default' => '#kFa6MB39Z#5',
                     'desc' => esc_html('Print api password should be set here.', 'wc-print')
+                ),
+                array(
+                    'label' => __('Bearer Token', 'wc-print'),
+                    'label_for' => 'print_token',
+                    'type' => 'text',
+                    'default' => '',
+                    'desc' => esc_html('Print api initial Bearer Token should be set here.', 'wc-print')
                 ),
                 array(
                     'label' => __('Products', 'wc-print'),
@@ -199,9 +221,47 @@ if (!class_exists('PRINT_Settings')) {
                 __('Print API Settings', 'wc-print'),
                 'administrator',
                 'print-api-settings',
-                __CLASS__ . '::print_settings_callback',
+                array($this, 'print_settings_callback'),
                 55
             );
+        }
+
+
+        /**
+         * Process Print product and store to woocommerce database based on options
+         * 
+         * @param $args array
+         * 
+         * @return bolian (true/false)
+         * 
+         */
+        private function printProductToWooCommerce($args) 
+        {
+            $token = json_decode(PRINT_Controller::$bareerToken);
+
+            $products = array();
+            foreach($args as $slug):
+                $response = PRINT_Controller::$guzzleClient->request('GET', 'https://api.print.com/products/' . $slug, [
+                'headers' => [
+                    'accept' => 'application/json',
+                    'authorization' => 'Bearer ' . $token,
+                ],
+                ]);
+                $product =  json_decode($response->getBody());
+                array_push($products, $product);
+
+                //Process to insert WooCommerce DB 
+                $wcProduct = new WC_Product_Simple();
+                $wcProduct->set_name($product->titleSingle);
+                $wcProduct->set_slug($product->sku);
+                // $wcProduct->save();
+            endforeach;
+
+            
+            echo 'product lists <br/><pre>';
+            print_r($products);
+            echo '</pre>';
+
         }
 
 
@@ -210,24 +270,27 @@ if (!class_exists('PRINT_Settings')) {
          * Bunny CDN admin setting page html
          * @access public
          */
-        public static function print_settings_callback()
+        public function print_settings_callback()
         {
             // check user capabilities
             if (!current_user_can('manage_options')) {
                 return;
             }
 
+            
             $options = get_option('print_options');
             echo 'options <br/><pre>';
             print_r($options);
             echo '</pre>';
 
+
+            $this->printProductToWooCommerce($options['print_product']);
             // add error/update messages
 
             // check if the user have submitted the settings
             // WordPress will add the "settings-updated" $_GET parameter to the url
             if (isset($_GET['settings-updated'])) {
-
+                
 
             }
             include_once PRINT_PATH . DIRECTORY_SEPARATOR . 'temp/print-setting-page.php';
@@ -259,7 +322,8 @@ if (!class_exists('PRINT_Settings')) {
          */
         public static function print_default_fields($options, $args)
         {
-            include_once PRINT_PATH . DIRECTORY_SEPARATOR . 'temp/print-default-field.php';
+            
+            include PRINT_PATH . DIRECTORY_SEPARATOR . 'temp/print-default-field.php';
         }
 
 

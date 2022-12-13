@@ -57,6 +57,9 @@ class PRINT_Controller
      */
     function _get_bareerToken()
     {
+        if (!PRINT_Settings::_get_option('print_token'))
+            return;
+
         $token = false;
         if (!get_transient('print_token')) {
             $client = self::$guzzleClient;
@@ -64,7 +67,7 @@ class PRINT_Controller
                 'body' => '{"credentials":{"username":"info@prezu.nl","password":"#kFa6MB39Z#5"}}',
                 'headers' => [
                     'accept' => 'application/json',
-                    'authorization' => 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJuYW1lIjoiaW5mb0BwcmV6dS5ubCIsImN1c3RvbWVySWQiOiI5NDEzIiwiY29nbml0b1VzZXJuYW1lIjoiMDFiODJjYTItYTU4Yi00NTlhLWIxMmItNzA4NDk4M2ZlMjNmIiwicGVyc29uYWwiOnsiZW1haWwiOiJpbmZvQHByZXp1Lm5sIiwibmFtZSI6IlVndXIgQWxiYXlyYWsiLCJmaXJzdG5hbWUiOiJVZ3VyIiwibGFzdG5hbWUiOiJBbGJheXJhayJ9LCJyZWdpb24iOiJubCIsInN1YnNpZGlhcnkiOjcsImF1dGhvcml6YXRpb24iOiJCZWFyZXIgNDNjY2NlOTEwZDcwNDMyYzk5MGZiZjhkM2Q5OWViZjkifSwibWFnZW50b0F1dGhvcml6YXRpb24iOiJCZWFyZXIgNDNjY2NlOTEwZDcwNDMyYzk5MGZiZjhkM2Q5OWViZjkiLCJ0eXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE2Njk3NTE1NzUsImV4cCI6MTY3MDE4MzU3NX0.G6DQ8PXc2Rj5bfDOyAP6JIv8hi6muGRgy9nDhDpnxAg',
+                    'authorization' => 'Bearer ' . PRINT_Settings::_get_option('print_token'),
                     'content-type' => 'application/json',
                 ],
             ]);
