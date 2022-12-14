@@ -6,9 +6,6 @@
  */
 ?>
 
-<?php
-
-?>
 
 <select style="min-width: 500px;" id="<?php echo esc_attr($args['label_for']); ?>" name="print_options[<?php echo esc_attr($args['label_for']); ?>][]" class="print-select2" multiple="multiple">
     <?php foreach ($args['options'] as $sproduct):

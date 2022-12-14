@@ -257,7 +257,7 @@ if (!class_exists('PRINT_Settings')) {
                 // $wcProduct->save();
             endforeach;
 
-            
+            echo 'token is: ' . $token . '<br/>';
             echo 'product lists <br/><pre>';
             print_r($products);
             echo '</pre>';

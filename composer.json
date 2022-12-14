@@ -1,5 +1,8 @@
 {
     "require": {
         "guzzlehttp/guzzle": "^7.5"
+    },
+    "config": {
+        "platform-check": false
     }
 }

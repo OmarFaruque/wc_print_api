@@ -61,7 +61,7 @@ class PRINT_Controller
             return;
 
         $token = false;
-        if (!get_transient('print_token')) {
+        if (!get_transient('print_api_token')) {
             $client = self::$guzzleClient;
             $response = $client->request('POST', PRINT_API_URL . 'login', [
                 'body' => '{"credentials":{"username":"info@prezu.nl","password":"#kFa6MB39Z#5"}}',
@@ -75,8 +75,9 @@ class PRINT_Controller
                 $token = $response->getBody();
                 $token = (string) $token;
             }
+            set_transient('print_api_token', $token, 259200);
         } else {
-            $token = get_transient('print_token');
+            $token = get_transient('print_api_token');
         }
 
         return $token;
@@ -84,6 +85,10 @@ class PRINT_Controller
 
 
     public static function print_get_product_lists(){
+        echo 'token: ' . $token . '<br/>';
+        if (!PRINT_Settings::_get_option('print_token'))
+            return;
+
         $token = json_decode(self::$bareerToken);
         $response = self::$guzzleClient->request('GET', PRINT_API_URL . 'products', [
             'headers' => [
